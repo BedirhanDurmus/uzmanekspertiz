@@ -1,0 +1,2388 @@
+<!DOCTYPE html>
+<html lang="tr" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Araç Fiyat Analizi & Tahmin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --accent: #5eead4;
+            --accent2: #38bdf8;
+            --accent3: #ff4d2a;
+            --surface: #0c0e13;
+            --surface2: #12151b;
+            --surface3: #181c24;
+            --border-clr: #1f242e;
+            --text-muted2: #64748b;
+            --text-body: #cbd5e1;
+            --ember: #ff4d2a;
+            --teal: #5eead4;
+        }
+        * { box-sizing: border-box; }
+        body {
+            background: #060709;
+            color: var(--text-body);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-weight: 300;
+            letter-spacing: 0.01em;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Hero */
+        .hero-section {
+            background: linear-gradient(170deg, #0c0e14 0%, #060709 60%, #0a0d12 100%);
+            border-bottom: 1px solid var(--border-clr);
+            padding: 2.8rem 0 2.2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 90% 50% at 15% 40%, rgba(94,234,212,0.06) 0%, transparent 60%),
+                        radial-gradient(ellipse 60% 50% at 85% 60%, rgba(255,77,42,0.04) 0%, transparent 55%);
+            pointer-events: none;
+        }
+        .hero-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+            font-weight: 300;
+            letter-spacing: 0.07em;
+            color: #f1f5f9;
+        }
+        .hero-sub {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-muted2);
+            font-size: 0.85rem;
+            font-weight: 300;
+            letter-spacing: 0.02em;
+            line-height: 1.6;
+            max-width: 680px;
+        }
+
+        /* Navigation */
+        .nav-pills-custom .nav-link {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-muted2);
+            background: transparent;
+            border: 1px solid var(--border-clr);
+            border-radius: 2px;
+            padding: 0.55rem 1.15rem;
+            margin: 0 0.2rem;
+            font-weight: 500;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            transition: all 0.25s ease;
+        }
+        .nav-pills-custom .nav-link:hover {
+            color: var(--teal);
+            border-color: rgba(94,234,212,0.35);
+            background: rgba(94,234,212,0.04);
+        }
+        .nav-pills-custom .nav-link.active {
+            color: #0a0a0a;
+            background: linear-gradient(165deg, #5eead4, #2dd4bf);
+            border-color: transparent;
+            box-shadow: 0 6px 28px rgba(94,234,212,0.22);
+        }
+
+        /* Cards */
+        .card-glass {
+            background: var(--surface2);
+            border: 1px solid var(--border-clr);
+            border-radius: 4px;
+            padding: 1.5rem;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+        .card-glass:hover {
+            border-color: rgba(94,234,212,0.18);
+            box-shadow: 0 8px 36px rgba(0,0,0,0.35);
+        }
+
+        /* KPI Cards */
+        .kpi-card {
+            background: var(--surface2);
+            border: 1px solid var(--border-clr);
+            border-radius: 4px;
+            padding: 1.25rem;
+            text-align: center;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi-card:hover {
+            border-color: rgba(94,234,212,0.15);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+        }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+        }
+        .kpi-card.kpi-purple::before { background: linear-gradient(90deg, var(--teal), #2dd4bf); }
+        .kpi-card.kpi-blue::before { background: linear-gradient(90deg, var(--accent2), #0ea5e9); }
+        .kpi-card.kpi-red::before { background: linear-gradient(90deg, var(--ember), #f59e0b); }
+        .kpi-card.kpi-green::before { background: linear-gradient(90deg, #10b981, #34d399); }
+        .kpi-card.kpi-orange::before { background: linear-gradient(90deg, #f59e0b, #fb923c); }
+        .kpi-card.kpi-cyan::before { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
+        .kpi-card.kpi-violet::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+        .kpi-card.kpi-orange .kpi-icon { color: #f59e0b; }
+        .kpi-card.kpi-cyan .kpi-icon { color: #06b6d4; }
+        .kpi-card.kpi-violet .kpi-icon { color: #a78bfa; }
+        .kpi-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.4rem;
+            display: block;
+            opacity: 0.85;
+        }
+        .kpi-card.kpi-purple .kpi-icon { color: var(--teal); }
+        .kpi-card.kpi-blue .kpi-icon { color: var(--accent2); }
+        .kpi-card.kpi-red .kpi-icon { color: var(--ember); }
+        .kpi-card.kpi-green .kpi-icon { color: #10b981; }
+        .kpi-value {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            color: #f1f5f9;
+        }
+        .kpi-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.62rem;
+            color: var(--text-muted2);
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-weight: 500;
+            margin-top: 0.35rem;
+        }
+
+        /* Chart containers */
+        .chart-container {
+            position: relative;
+            height: 320px;
+            width: 100%;
+        }
+        .chart-container-sm {
+            position: relative;
+            height: 260px;
+            width: 100%;
+        }
+        .chart-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #e2e8f0;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .chart-title i {
+            color: var(--teal);
+            font-size: 0.9rem;
+        }
+
+        /* Section headers */
+        .section-header {
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(1.05rem, 2vw, 1.3rem);
+            font-weight: 300;
+            letter-spacing: 0.08em;
+            color: #f1f5f9;
+            margin-bottom: 0.35rem;
+        }
+        .section-sub {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-muted2);
+            font-size: 0.8rem;
+            font-weight: 300;
+            letter-spacing: 0.02em;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Tab sections */
+        .tab-section {
+            display: none;
+            animation: fadeIn 0.35s ease;
+        }
+        .tab-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Forms */
+        .form-control, .form-select {
+            font-family: 'Inter', sans-serif;
+            background: var(--surface3);
+            border: 1px solid var(--border-clr);
+            color: var(--text-body);
+            border-radius: 2px;
+            padding: 0.55rem 0.85rem;
+            font-size: 0.82rem;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--teal);
+            box-shadow: 0 0 0 2px rgba(94,234,212,0.12);
+            background: var(--surface3);
+            color: var(--text-body);
+        }
+        .form-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted2);
+            margin-bottom: 0.35rem;
+        }
+        .btn-predict {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            background: linear-gradient(165deg, #ff5c35, var(--ember), #c41e08);
+            border: 1px solid rgba(255,77,42,0.45);
+            color: #0a0a0a;
+            padding: 0.85rem 2.5rem;
+            border-radius: 2px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+            box-shadow: 0 8px 32px rgba(255,77,42,0.22);
+        }
+        .btn-predict:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 40px rgba(255,77,42,0.35);
+            filter: brightness(1.06);
+            color: #0a0a0a;
+        }
+
+        /* Prediction result */
+        .prediction-result {
+            background: var(--surface2);
+            border: 1px solid var(--border-clr);
+            border-radius: 4px;
+            padding: 2rem;
+            text-align: center;
+            display: none;
+        }
+        .prediction-result.show { display: block; }
+        .pred-value {
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            color: var(--teal);
+        }
+        .pred-range {
+            display: inline-block;
+            background: var(--surface3);
+            border: 1px solid var(--border-clr);
+            border-radius: 2px;
+            padding: 0.5rem 1rem;
+            margin: 0.3rem;
+            font-size: 0.8rem;
+        }
+        .pred-range-label {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-muted2);
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* Model comparison table */
+        .table-dark-custom {
+            background: transparent;
+            color: var(--text-body);
+        }
+        .table-dark-custom thead th {
+            font-family: 'Montserrat', sans-serif;
+            background: var(--surface3);
+            border-color: var(--border-clr);
+            color: var(--text-muted2);
+            font-size: 0.62rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-weight: 600;
+            padding: 0.8rem 0.75rem;
+        }
+        .table-dark-custom tbody td {
+            font-family: 'Inter', sans-serif;
+            border-color: var(--border-clr);
+            padding: 0.7rem 0.75rem;
+            font-size: 0.82rem;
+            font-weight: 400;
+        }
+        .table-dark-custom tbody tr:hover {
+            background: rgba(94,234,212,0.03);
+        }
+        .badge-best {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, var(--teal), #2dd4bf);
+            color: #0a0a0a;
+            font-weight: 600;
+            font-size: 0.58rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.25em 0.65em;
+            border-radius: 2px;
+        }
+
+        /* Spinner */
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        .spinner-ring {
+            width: 36px;
+            height: 36px;
+            border: 2px solid var(--border-clr);
+            border-top-color: var(--teal);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--surface); }
+        ::-webkit-scrollbar-thumb { background: var(--border-clr); border-radius: 0; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--teal); }
+
+        /* Footer */
+        .footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border-clr);
+            padding: 2rem 0;
+            margin-top: 3.5rem;
+            color: var(--text-muted2);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.04em;
+        }
+
+        .tag-badge {
+            font-family: 'Montserrat', sans-serif;
+            display: inline-block;
+            background: transparent;
+            color: var(--text-muted2);
+            border: 1px solid var(--border-clr);
+            border-radius: 2px;
+            padding: 0.22rem 0.65rem;
+            font-size: 0.6rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* Inline overrides for small text & links */
+        .small, small { font-size: 0.78rem; }
+        a.link-info { color: var(--teal); }
+        a.link-info:hover { color: #99f6e4; }
+        strong { font-weight: 500; }
+        h6.text-white { font-family: 'Montserrat', sans-serif; font-weight: 500; letter-spacing: 0.06em; font-size: 0.82rem; }
+
+        /* Açılış splash — fotoğraf + premium tipografi */
+        #app-splash {
+            --splash-teal: #5eead4;
+            --splash-ember: #ff4d2a;
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            padding: clamp(1.5rem, 5vw, 4rem);
+            font-family: 'Montserrat', 'Inter', system-ui, sans-serif;
+            background: #050608;
+            transition: opacity 0.55s ease, visibility 0.55s ease;
+        }
+        body.splash-done #app-splash {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        #app-splash .app-splash__photo-wrap {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            background: #050608;
+        }
+        #app-splash .app-splash__photo-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: 72% center;
+            image-rendering: auto;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+        #app-splash .app-splash__veil {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(
+                100deg,
+                rgba(4, 6, 10, 0.94) 0%,
+                rgba(4, 6, 10, 0.78) 32%,
+                rgba(4, 6, 10, 0.35) 52%,
+                rgba(4, 6, 10, 0.55) 100%
+            );
+        }
+        #app-splash .app-splash__grain {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.022;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        #app-splash .app-splash__inner {
+            position: relative;
+            z-index: 2;
+            text-align: left;
+            max-width: min(34rem, 92vw);
+            animation: splash-content-in 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes splash-content-in {
+            from { opacity: 0; transform: translateY(18px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #app-splash .app-splash__kicker {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.68rem;
+            font-weight: 500;
+            letter-spacing: 0.38em;
+            text-transform: uppercase;
+            color: var(--splash-teal);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 32px rgba(94, 234, 212, 0.35);
+        }
+        #app-splash .app-splash__title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(1.55rem, 3.8vw, 2.35rem);
+            font-weight: 200;
+            line-height: 1.2;
+            letter-spacing: 0.06em;
+            color: #f8fafc;
+            margin-bottom: 1.1rem;
+            text-shadow:
+                0 2px 40px rgba(0, 0, 0, 0.9),
+                0 0 1px rgba(255, 255, 255, 0.08);
+        }
+        #app-splash .app-splash__sub {
+            font-family: 'Inter', system-ui, sans-serif;
+            font-size: clamp(0.82rem, 1.35vw, 0.95rem);
+            font-weight: 300;
+            line-height: 1.65;
+            letter-spacing: 0.03em;
+            color: rgba(226, 232, 240, 0.72);
+            margin-bottom: 1.35rem;
+            max-width: 26rem;
+        }
+        #app-splash .app-splash__stats {
+            font-family: 'Inter', system-ui, sans-serif;
+            font-size: 0.78rem;
+            font-weight: 400;
+            letter-spacing: 0.06em;
+            color: rgba(148, 163, 184, 0.95);
+            margin-bottom: 1.75rem;
+            min-height: 1.4rem;
+        }
+        #app-splash .btn-splash {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            border-radius: 2px;
+            padding: 0.85rem 2.25rem;
+            border: 1px solid rgba(255, 77, 42, 0.55);
+            background: linear-gradient(165deg, #ff5c35 0%, var(--splash-ember) 45%, #c41e08 100%);
+            color: #0a0a0a;
+            box-shadow:
+                0 0 0 1px rgba(0, 0, 0, 0.4),
+                0 12px 40px rgba(255, 77, 42, 0.28);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+        #app-splash .btn-splash:hover {
+            color: #0a0a0a;
+            filter: brightness(1.06);
+            transform: translateY(-1px);
+            box-shadow:
+                0 0 0 1px rgba(0, 0, 0, 0.35),
+                0 16px 48px rgba(255, 77, 42, 0.38);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #app-splash .app-splash__inner { animation: none; opacity: 1; transform: none; }
+            #app-splash { transition-duration: 0.15s; }
+            #app-splash .btn-splash { transition: none; }
+            #app-splash .btn-splash:hover { transform: none; }
+        }
+        @media (max-width: 576px) {
+            #app-splash .app-splash__photo-img { object-position: 60% center; }
+            #app-splash .app-splash__veil {
+                background: linear-gradient(180deg, rgba(4, 6, 10, 0.88) 0%, rgba(4, 6, 10, 0.5) 45%, rgba(4, 6, 10, 0.75) 100%);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-splash" role="dialog" aria-modal="true" aria-labelledby="splash-title" aria-describedby="splash-desc">
+    <div class="app-splash__photo-wrap" aria-hidden="true">
+        <img class="app-splash__photo-img" src="/static/splash-bg.png" width="2560" height="1432" fetchpriority="high" decoding="sync" alt="">
+    </div>
+    <div class="app-splash__veil" aria-hidden="true"></div>
+    <div class="app-splash__grain" aria-hidden="true"></div>
+    <div class="app-splash__inner">
+        <div class="app-splash__kicker">Veri madenciliği · analiz</div>
+        <h2 id="splash-title" class="app-splash__title">İkinci el araç fiyat analizi ve tahmini</h2>
+        <p id="splash-desc" class="app-splash__sub">Yerel veri setleri üzerinde keşifsel analiz ve güncel piyasa tahmini. Sonuçlar bilgilendirme amaçlıdır; resmi değerleme yerine geçmez.</p>
+        <div id="splash-stats" class="app-splash__stats"></div>
+        <button type="button" class="btn btn-splash" id="splash-continue">Devam</button>
+    </div>
+</div>
+
+<!-- Hero -->
+<section class="hero-section">
+    <div class="container">
+        <h1 class="hero-title mb-2">İkinci El Araç Fiyat Analizi & Tahmin</h1>
+        <p class="hero-sub mb-3">
+            Türkiye ikinci el otomobil piyasası — 180 000+ ilan verisi üzerinde makine öğrenmesi ile keşifsel analiz, model karşılaştırması ve fiyat tahmini.
+        </p>
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+            <span class="tag-badge" style="border-color:rgba(94,234,212,0.35);color:var(--teal)"><i class="bi bi-arrow-repeat me-1"></i>Sürüm {{ build_id }}</span>
+            <span class="tag-badge"><i class="bi bi-database me-1"></i>Güncel örneklem 2026</span>
+            <span class="tag-badge"><i class="bi bi-cpu me-1"></i>HGB / XGBoost</span>
+            <span class="tag-badge"><i class="bi bi-bar-chart me-1"></i>EDA + Karşılaştırma</span>
+        </div>
+    </div>
+</section>
+
+<!-- Navigation -->
+<div class="container mt-4 mb-4">
+    <ul class="nav nav-pills-custom d-flex flex-wrap" id="mainNav">
+        <li class="nav-item">
+            <a class="nav-link active" href="#" data-target="dashboard" onclick="switchTab(event, 'dashboard')">
+                <i class="bi bi-grid-1x2 me-1"></i>Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-target="eda" onclick="switchTab(event, 'eda')">
+                <i class="bi bi-graph-up me-1"></i>Keşifsel Analiz (EDA)
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-target="models" onclick="switchTab(event, 'models')">
+                <i class="bi bi-trophy me-1"></i>Model Karşılaştırması
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-target="predict" onclick="switchTab(event, 'predict')">
+                <i class="bi bi-calculator me-1"></i>Fiyat Tahmini
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-target="period" onclick="switchTab(event, 'period')">
+                <i class="bi bi-clock-history me-1"></i>~6 Ay Piyasa Kıyası
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Content -->
+<div class="container pb-4">
+
+    <!-- ============ DASHBOARD ============ -->
+    <div class="tab-section active" id="sec-dashboard">
+        <div class="section-header">Genel Bakış</div>
+        <div class="section-sub">Veri setinin özet istatistikleri ve ana dağılımları</div>
+
+        <div class="row g-3 mb-4" id="kpi-row">
+            <div class="col-6 col-md-3">
+                <div class="kpi-card kpi-purple">
+                    <i class="bi bi-stack kpi-icon"></i>
+                    <div class="kpi-value" id="kpi-total">—</div>
+                    <div class="kpi-label">Toplam İlan</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="kpi-card kpi-blue">
+                    <i class="bi bi-cash-coin kpi-icon"></i>
+                    <div class="kpi-value" id="kpi-median">—</div>
+                    <div class="kpi-label">Medyan Fiyat</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="kpi-card kpi-green">
+                    <i class="bi bi-speedometer kpi-icon"></i>
+                    <div class="kpi-value" id="kpi-km">—</div>
+                    <div class="kpi-label">Medyan KM</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="kpi-card kpi-red">
+                    <i class="bi bi-car-front kpi-icon"></i>
+                    <div class="kpi-value" id="kpi-brands">—</div>
+                    <div class="kpi-label">Benzersiz Marka</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-bar-chart-fill"></i> Fiyat Dağılımı</div>
+                    <div class="chart-container"><canvas id="chart-price-dist"></canvas></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-pie-chart-fill"></i> Yakıt Tipi Dağılımı</div>
+                    <div class="chart-container"><canvas id="chart-fuel"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+            <div class="col-md-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-calendar-event"></i> Yıla Göre Medyan Fiyat</div>
+                    <div class="chart-container"><canvas id="chart-price-year"></canvas></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-building"></i> Marka Bazında Medyan Fiyat (Top 25)</div>
+                    <div class="chart-container"><canvas id="chart-brand"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ EDA ============ -->
+    <div class="tab-section" id="sec-eda">
+        <div class="section-header">Keşifsel Veri Analizi (EDA)</div>
+        <div class="section-sub">Fiyatı etkileyen faktörler, korelasyonlar ve kategorik kırılımlar (Mart 2026 güncel örneklem).</div>
+
+        <div class="card-glass mb-4" style="border-left:2px solid var(--teal)">
+            <div class="chart-title mb-2"><i class="bi bi-arrow-left-right text-info me-2"></i>Piyasa kıyası (~6 ay)</div>
+            <p class="small mb-0" style="color:var(--text-muted2)">
+                <strong>Referans ilan seti</strong> (~Ağustos 2025) ile <strong>güncel ilan seti</strong> (Mart 2026) karşılaştırması, KPI’lar ve tüm grafikler
+                <strong class="text-white">Karşılaştırma</strong> sekmesindedir.
+                <a href="#" class="link-info text-decoration-none ms-1" onclick="goToPeriodTab(event)">Sekmeye git →</a>
+            </p>
+        </div>
+
+        <div class="section-header mt-2" style="font-size:1.05rem">Güncel örneklem (2026) — derinlemesine</div>
+        <div class="section-sub">Tek veri seti üzerinde korelasyon, dağılımlar; alıcı rehberi ile km / yaş / renk / çekiş kılavuzu</div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-arrow-left-right"></i> Korelasyon — Fiyat ile Sayısal Değişkenler</div>
+                    <div class="chart-container"><canvas id="chart-corr"></canvas></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-scatter"></i> Fiyat vs Kilometre (Scatter)</div>
+                    <div class="chart-container"><canvas id="chart-scatter"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+            <div class="col-md-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-speedometer2"></i> Kilometre Dağılımı</div>
+                    <div class="chart-container"><canvas id="chart-km-dist"></canvas></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-calendar3"></i> Model Yılı Dağılımı</div>
+                    <div class="chart-container"><canvas id="chart-year-dist"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+            <div class="col-md-4">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-gear-fill"></i> Vites Tipi</div>
+                    <div class="chart-container-sm"><canvas id="chart-transmission"></canvas></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-truck"></i> Kasa Tipi — Medyan Fiyat</div>
+                    <div class="chart-container-sm"><canvas id="chart-body"></canvas></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-person-badge"></i> Satıcı Tipi — Medyan Fiyat</div>
+                    <div class="chart-container-sm"><canvas id="chart-seller"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+            <div class="col-md-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-hourglass-split"></i> Araç Yaşı vs Medyan Fiyat</div>
+                    <div class="chart-container"><canvas id="chart-age"></canvas></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-geo-alt-fill"></i> Şehir Bazında Medyan Fiyat (Top 20)</div>
+                    <div class="chart-container"><canvas id="chart-city"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+            <div class="col-12">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-compass"></i> Alıcı rehberi — fiyatı hangi profil belirliyor?</div>
+                    <p class="small mb-3" style="color:var(--text-muted2)!important">
+                        Aynı güncel örneklemde ortalama piyasa medyanı: daha çok orijinal panel, düşük km ve güncel model yılı genelde daha yüksek fiyat bandına işaret eder; renk ve çekiş farkları seçilen segmente göre değişir.
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-lg-6">
+                            <div class="text-secondary small mb-1"><i class="bi bi-shield-check me-1"></i>Orijinal panel adedi (0–13) — medyan ₺</div>
+                            <div class="chart-container-sm"><canvas id="chart-panel-orijinal"></canvas></div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="text-secondary small mb-1"><i class="bi bi-speedometer2 me-1"></i>Kilometre dilimi — medyan ₺</div>
+                            <div class="chart-container-sm"><canvas id="chart-guide-km"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-lg-4">
+                            <div class="text-secondary small mb-1"><i class="bi bi-calendar-range me-1"></i>Model yılı kuşağı — medyan ₺</div>
+                            <div class="chart-container-sm"><canvas id="chart-guide-yil"></canvas></div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="text-secondary small mb-1"><i class="bi bi-palette me-1"></i>Renk (yüksek ilan hacmi) — medyan ₺</div>
+                            <div class="chart-container-sm"><canvas id="chart-guide-renk"></canvas></div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="text-secondary small mb-1"><i class="bi bi-gear-wide me-1"></i>Çekiş tipi — medyan ₺</div>
+                            <div class="chart-container-sm"><canvas id="chart-guide-cekis"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MODELS ============ -->
+    <div class="tab-section" id="sec-models">
+        <div class="section-header">Model Karşılaştırması</div>
+        <div class="section-sub">Baseline'dan boosting'e — tüm modellerin performans metrikleri</div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="kpi-card kpi-purple">
+                    <i class="bi bi-trophy-fill kpi-icon"></i>
+                    <div class="kpi-value" style="font-size:1.1rem">XGBoost (tuned)</div>
+                    <div class="kpi-label">En İyi Model</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card kpi-blue">
+                    <i class="bi bi-bullseye kpi-icon"></i>
+                    <div class="kpi-value">0.936</div>
+                    <div class="kpi-label">R² Skoru</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card kpi-green">
+                    <i class="bi bi-arrow-down-circle kpi-icon"></i>
+                    <div class="kpi-value" id="kpi-mae-best">62.100 ₺</div>
+                    <div class="kpi-label">MAE</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card kpi-red">
+                    <i class="bi bi-percent kpi-icon"></i>
+                    <div class="kpi-value">%9.4</div>
+                    <div class="kpi-label">MAPE</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-glass mb-4">
+            <div class="chart-title"><i class="bi bi-table"></i> Performans Tablosu</div>
+            <div class="table-responsive">
+                <table class="table table-dark-custom mb-0" id="model-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>MAE (₺)</th>
+                            <th>RMSE (₺)</th>
+                            <th>R²</th>
+                            <th>MAPE (%)</th>
+                            <th>CV MAE (₺)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-bar-chart-steps"></i> MAE Karşılaştırması</div>
+                    <div class="chart-container"><canvas id="chart-model-mae"></canvas></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-bullseye"></i> R² Karşılaştırması</div>
+                    <div class="chart-container"><canvas id="chart-model-r2"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ PREDICT ============ -->
+    <div class="tab-section" id="sec-predict">
+        <div class="section-header">Fiyat Tahmini</div>
+        <div class="section-sub">Araç özelliklerini girerek güncel piyasa fiyat tahmini alın</div>
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card-glass">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <h6 class="text-white mb-3"><i class="bi bi-sliders me-2" style="color:var(--accent)"></i>Sayısal Bilgiler</h6>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Model Yılı</label>
+                            <input type="number" class="form-control" id="inp-yil" value="2020" min="1980" max="2026">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Kilometre</label>
+                            <input type="number" class="form-control" id="inp-km" value="85000" min="0" step="1000">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Motor Hacmi (cc)</label>
+                            <input type="number" class="form-control" id="inp-motor-hacmi" value="1600" min="0" max="8000">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Motor Gücü (hp)</label>
+                            <input type="number" class="form-control" id="inp-motor-gucu" value="120" min="0" max="800">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ort. Yakıt Tüketimi (lt)</label>
+                            <input type="number" class="form-control" id="inp-yakit-tuketim" value="7.0" min="0" max="30" step="0.1">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Yakıt Deposu (lt)</label>
+                            <input type="number" class="form-control" id="inp-yakit-depo" value="50" min="0" max="200">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Boyalı Panel Sayısı</label>
+                            <input type="number" class="form-control" id="inp-boyali" value="0" min="0" max="13">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Değişen Panel Sayısı</label>
+                            <input type="number" class="form-control" id="inp-degisen" value="0" min="0" max="13">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tramer tutarı (TL)</label>
+                            <input type="number" class="form-control" id="inp-tramer" value="0" min="0" max="50000000" step="1000" title="Güncel model tramer sütununu kullanmaz; tramer tutarı yalnızca referans tahmininde dikkate alınır.">
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <h6 class="text-white mb-3"><i class="bi bi-tags me-2" style="color:var(--accent2)"></i>Araç tanımı (marka → seri → model / paket)</h6>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Marka</label>
+                            <select class="form-select" id="inp-marka"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Seri</label>
+                            <select class="form-select" id="inp-seri"></select>
+                        </div>
+                        <div class="col-12">
+                            <div id="hierarchy-branch" class="p-3 rounded mb-2" style="background:var(--surface3);border:1px solid var(--border-clr);min-height:3rem"></div>
+                            <input type="hidden" id="inp-model-resolved" value="">
+                        </div>
+
+                        <div class="col-12 mt-2">
+                            <h6 class="text-white mb-3"><i class="bi bi-sliders me-2" style="color:var(--accent2)"></i>Diğer</h6>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Takasa uygun</label>
+                            <select class="form-select" id="inp-takasa"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Boya / değişen (özet)</label>
+                            <select class="form-select" id="inp-boya-degisen"></select>
+                        </div>
+
+                        <div class="col-12 mt-2">
+                            <h6 class="text-white mb-3"><i class="bi bi-fuel-pump me-2" style="color:var(--accent2)"></i>Donanım</h6>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Yakıt Tipi</label>
+                            <select class="form-select" id="inp-yakit-tipi"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Vites Tipi</label>
+                            <select class="form-select" id="inp-vites"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Kasa Tipi</label>
+                            <select class="form-select" id="inp-kasa"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Çekiş</label>
+                            <select class="form-select" id="inp-cekis"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Kimden</label>
+                            <select class="form-select" id="inp-kimden"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Renk</label>
+                            <select class="form-select" id="inp-renk"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Araç Durumu</label>
+                            <select class="form-select" id="inp-durum"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ağır Hasarlı</label>
+                            <select class="form-select" id="inp-hasar"></select>
+                        </div>
+
+                        <div class="col-12 mt-3 text-center">
+                            <button class="btn btn-predict" onclick="predict()">
+                                <i class="bi bi-lightning-charge-fill me-2"></i>Fiyat Tahmin Et
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="prediction-result" id="pred-result">
+                    <div class="mb-2">
+                        <i class="bi bi-check-circle-fill" style="font-size:2rem;color:#10b981"></i>
+                    </div>
+                    <div style="font-size:0.85rem;color:var(--text-muted2);margin-bottom:0.5rem">Tahmini Fiyat</div>
+                    <div class="pred-value" id="pred-price">—</div>
+                    <div class="mt-3">
+                        <div class="pred-range">
+                            <div class="pred-range-label">± MAE Aralığı</div>
+                            <div id="pred-mae-range" style="font-weight:600">—</div>
+                        </div>
+                        <div class="pred-range">
+                            <div class="pred-range-label">± RMSE Aralığı</div>
+                            <div id="pred-rmse-range" style="font-weight:600">—</div>
+                        </div>
+                    </div>
+                    <div class="mt-3" style="font-size:0.78rem;color:var(--text-muted2)">
+                        Model: HistGradientBoosting · MAE ≈ <span id="pred-mae-info">—</span> ₺
+                    </div>
+                    <div id="pred-ref-block" class="mt-4 pt-3 border-top border-secondary" style="display:none">
+                        <div style="font-size:0.8rem;color:var(--text-muted2)" id="pred-ref-label">—</div>
+                        <div class="fs-5 fw-semibold mt-1" id="pred-ref-price">—</div>
+                        <div class="mt-2 small" id="pred-delta-line">—</div>
+                        <p class="small text-muted mt-2 mb-0" id="pred-tramer-note"></p>
+                    </div>
+                    <div id="pred-chart-wrap" class="mt-3" style="display:none;height:220px">
+                        <canvas id="chart-pred-compare"></canvas>
+                    </div>
+                </div>
+
+                <div class="card-glass mt-3">
+                    <div class="chart-title"><i class="bi bi-info-circle"></i> Nasıl Çalışır?</div>
+                    <ul style="font-size:0.85rem;color:var(--text-muted2);padding-left:1.2rem">
+                        <li class="mb-2">Girilen özellikler, eğitilmiş <strong>HistGradientBoosting</strong> pipeline'ına gönderilir</li>
+                        <li class="mb-2">Pipeline: <strong>Median Imputer → StandardScaler → OneHotEncoder → HGB</strong></li>
+                        <li class="mb-2">180K+ ilan üzerinde eğitilmiş, 5-fold çapraz doğrulama yapılmış</li>
+                        <li class="mb-2"><strong>MAE aralığı</strong>: Tahmin ± ortalama mutlak hata</li>
+                        <li class="mb-2"><strong>~6 ay önce</strong>: referans model (tramer dahil) veya piyasa medyan oranı ile referans tahmin</li>
+                        <li class="mb-2"><strong>Tramer</strong>: güncel modelde yok; yalnızca referans tahmininde kullanılır</li>
+                        <li>Sonuçlar bilgilendirme amaçlıdır, ekspertiz yerine geçmez</li>
+                    </ul>
+                </div>
+
+                <div class="card-glass mt-3">
+                    <div class="chart-title"><i class="bi bi-shield-lock"></i> Yasal Uyarı</div>
+                    <p style="font-size:0.8rem;color:var(--text-muted2);margin-bottom:0">
+                        Tahminler makine öğrenmesi modeli çıktısıdır. Bağlayıcı satış teklifi, resmi ekspertiz veya hukuki değerleme olarak kullanılamaz. Örneklem dönemleri ve alanlar akademik bağlamda yorumlanmalıdır.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ PERIOD (~6 months) ============ -->
+    <div class="tab-section" id="sec-period">
+        <div class="section-header">Yaklaşık 6 Ay Önce vs Güncel Piyasa</div>
+        <div class="section-sub">
+            <strong>Referans:</strong> referans ilan seti (Ağustos 2025, bireysel satıcı ağırlıklı örneklem) —
+            <strong>Güncel:</strong> güncel ilan seti (Mart 2026). Dönemler ve kaynaklar farklıdır; rakamlar resmi endeks değil, yaklaşık yön için kullanılmalıdır.
+            Ortak kategorilerde medyan fiyat ve pay değişimleri; marka+seri ve şehir eşlemesi referans konumu ile güncel şehir alanı üzerinden hizalanır.
+        </div>
+        <div class="row g-3 mb-3" id="period-kpi-row">
+            <div class="col-6 col-md-3"><div class="kpi-card kpi-blue"><i class="bi bi-file-earmark-text kpi-icon"></i><div class="kpi-value" id="pk-nref">—</div><div class="kpi-label">Referans ilan</div></div></div>
+            <div class="col-6 col-md-3"><div class="kpi-card kpi-purple"><i class="bi bi-database kpi-icon"></i><div class="kpi-value" id="pk-ncur">—</div><div class="kpi-label">Güncel ilan</div></div></div>
+            <div class="col-6 col-md-3"><div class="kpi-card kpi-green"><i class="bi bi-cash kpi-icon"></i><div class="kpi-value" id="pk-mref">—</div><div class="kpi-label">Medyan (ref.)</div></div></div>
+            <div class="col-6 col-md-3"><div class="kpi-card kpi-cyan"><i class="bi bi-currency-exchange kpi-icon"></i><div class="kpi-value" id="pk-mcur">—</div><div class="kpi-label">Medyan (güncel)</div></div></div>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-md-4"><div class="kpi-card kpi-red"><i class="bi bi-percent kpi-icon"></i><div class="kpi-value" id="pk-dpct">—</div><div class="kpi-label">Genel medyan değişim</div></div></div>
+            <div class="col-6 col-md-4"><div class="kpi-card kpi-orange"><i class="bi bi-speedometer2 kpi-icon"></i><div class="kpi-value" id="pk-km">—</div><div class="kpi-label">Medyan km (ref. → güncel)</div></div></div>
+            <div class="col-12 col-md-4"><div class="kpi-card kpi-violet"><i class="bi bi-calendar3 kpi-icon"></i><div class="kpi-value" id="pk-yil">—</div><div class="kpi-label">Medyan model yılı</div></div></div>
+        </div>
+        <p class="text-muted small mb-3" id="pk-src-note" style="color:var(--text-muted2)!important"></p>
+        <div class="row g-3 mb-3">
+            <div class="col-12">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-pie-chart"></i> Fiyat dilimi dağılımı (oran %)</div>
+                    <div class="chart-container"><canvas id="chart-period-bands"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-lg-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-fuel-pump"></i> Yakıt tipi — ortak kategoriler, medyan ₺</div>
+                    <div class="chart-container"><canvas id="chart-period-yakit"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-truck"></i> Kasa tipi — medyan ₺</div>
+                    <div class="chart-container"><canvas id="chart-period-kasa"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-lg-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-gear-wide-connected"></i> Vites — medyan ₺</div>
+                    <div class="chart-container"><canvas id="chart-period-vites"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-award"></i> Marka — medyan fiyat (₺), referans vs güncel</div>
+                    <div class="chart-container"><canvas id="chart-period-marka-median"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-lg-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-graph-up-arrow"></i> Marka — medyan fiyat değişimi (%)</div>
+                    <div class="chart-container"><canvas id="chart-period-brands"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-diagram-3"></i> Marka + seri — değişim %</div>
+                    <div class="chart-container"><canvas id="chart-period-ms"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="card-glass">
+                    <div class="chart-title"><i class="bi bi-geo-alt"></i> Şehir (ortak) — değişim %</div>
+                    <div class="chart-container"><canvas id="chart-period-cities"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container text-center">
+        <p class="mb-1">Marmara Üniversitesi — Veri Madenciliği Vize Ödevi · 2026</p>
+        <p class="mb-0">Veri: yerel örneklem · Model: HistGradientBoosting / XGBoost · <i class="bi bi-github"></i></p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const META = {{ meta | tojson | safe }};
+const METRICS = {{ metrics | tojson | safe }};
+
+async function ensureMetaFromServer() {
+    if (typeof META !== 'object' || META === null) return;
+    const keys = ['marka', 'yakit_tipi', 'vites_tipi', 'kasa_tipi', 'cekis', 'kimden', 'renk', 'arac_durumu', 'agir_hasarli', 'takasa_uygun', 'boya_degisen'];
+    const missing = keys.some(k => !META[k] || !Array.isArray(META[k]) || META[k].length === 0);
+    if (missing) {
+        try {
+            const r = await fetch('/api/meta/categories');
+            const data = await r.json();
+            Object.keys(data).forEach(k => { META[k] = data[k]; });
+        } catch (e) {
+            console.error('META tamamlanamadi', e);
+        }
+    }
+}
+
+const COLORS = {
+    purple: '#5eead4', blue: '#38bdf8', red: '#ff4d2a',
+    green: '#10b981', orange: '#f59e0b', pink: '#f472b6',
+    cyan: '#22d3ee', violet: '#8b5cf6', emerald: '#2dd4bf',
+    rose: '#fb7185',
+};
+const GRADIENT_COLORS = [
+    '#5eead4','#2dd4bf','#38bdf8','#0ea5e9','#22d3ee',
+    '#10b981','#34d399','#f59e0b','#ff4d2a','#f472b6',
+    '#8b5cf6','#a78bfa'
+];
+
+function fmtTL(n) {
+    return new Intl.NumberFormat('tr-TR').format(Math.round(n)) + ' ₺';
+}
+
+function goToPeriodTab(ev) {
+    if (ev && ev.preventDefault) ev.preventDefault();
+    const link = document.querySelector('.nav-pills-custom a.nav-link[data-target="period"]');
+    if (link) switchTab({ preventDefault() {}, currentTarget: link }, 'period');
+}
+
+let edaChartsLoaded = false;
+let modelsPanelLoaded = false;
+
+async function loadEdaChartsOnce() {
+    if (edaChartsLoaded) return;
+    edaChartsLoaded = true;
+    try {
+        await Promise.all([
+            loadCorrelation(),
+            loadScatter(),
+            loadKmDist(),
+            loadYearDist(),
+            loadTransmission(),
+            loadBodyType(),
+            loadSeller(),
+            loadAge(),
+            loadCity(),
+            loadBuyerGuides(),
+        ]);
+    } finally {
+        resizeAllCharts();
+    }
+}
+
+async function loadModelsPanelOnce() {
+    if (modelsPanelLoaded) return;
+    modelsPanelLoaded = true;
+    try {
+        await loadModelComparison();
+    } finally {
+        resizeAllCharts();
+    }
+}
+
+function switchTab(e, target) {
+    e.preventDefault();
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-pills-custom .nav-link').forEach(l => l.classList.remove('active'));
+    document.getElementById('sec-' + target).classList.add('active');
+    e.currentTarget.classList.add('active');
+    if (target === 'period') loadPeriodCompare();
+    if (target === 'eda') void loadEdaChartsOnce();
+    if (target === 'models') void loadModelsPanelOnce();
+    resizeAllCharts();
+}
+
+function escapeHtml(s) {
+    if (!s) return '';
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+
+let periodCompareLoaded = false;
+
+function chartEdaDualMedian(canvasId, block, titleRef, titleCur) {
+    const el = document.getElementById(canvasId);
+    if (!el) return;
+    if (!block || !block.labels || !block.labels.length) {
+        makeChart(canvasId, {
+            type: 'bar',
+            data: { labels: ['—'], datasets: [{ data: [0], backgroundColor: '#3d4553' }] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: 'Ortak kategori yetersiz', color: '#94a3b8', font: { size: 13 } },
+                    legend: { display: false },
+                },
+                scales: { x: { display: false }, y: { display: false } },
+            },
+        });
+        return;
+    }
+    makeChart(canvasId, {
+        type: 'bar',
+        data: {
+            labels: block.labels,
+            datasets: [
+                { label: titleRef, data: block.m25, backgroundColor: 'rgba(56,189,248,0.65)', borderRadius: 3, borderSkipped: false },
+                { label: titleCur, data: block.m26, backgroundColor: 'rgba(94,234,212,0.72)', borderRadius: 3, borderSkipped: false },
+            ],
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { color: '#e1e5eb', font: { size: 11 } } } },
+            scales: {
+                x: {
+                    stacked: false,
+                    ticks: { color: '#8b95a5', callback: (v) => (v / 1e6).toFixed(1) + 'M' },
+                    grid: { color: 'rgba(255,255,255,0.06)' },
+                },
+                y: {
+                    stacked: false,
+                    ticks: { color: '#e1e5eb', font: { size: 9 }, autoSkip: true, maxTicksLimit: 18 },
+                    grid: { display: false },
+                },
+            },
+        },
+    });
+}
+
+function chartEdaDeltaPct(canvasId, block) {
+    const el = document.getElementById(canvasId);
+    if (!el) return;
+    if (!block || !block.labels || !block.labels.length) {
+        makeChart(canvasId, {
+            type: 'bar',
+            data: { labels: ['—'], datasets: [{ data: [0], backgroundColor: '#3d4553' }] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: 'Ortak örneklem yok', color: '#94a3b8', font: { size: 13 } },
+                    legend: { display: false },
+                },
+                scales: { x: { display: false }, y: { display: false } },
+            },
+        });
+        return;
+    }
+    const colors = block.delta_pct.map((v) => (v >= 0 ? 'rgba(94,234,212,0.72)' : 'rgba(255,77,42,0.72)'));
+    makeChart(canvasId, {
+        type: 'bar',
+        data: {
+            labels: block.labels,
+            datasets: [{ label: 'Δ %', data: block.delta_pct, backgroundColor: colors, borderRadius: 6, borderSkipped: false }],
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Medyan fiyat değişimi % (güncel / referans − 1)',
+                        color: '#8b95a5',
+                        font: { size: 11 },
+                    },
+                    ticks: { color: '#8b95a5', callback: (v) => v + '%' },
+                    grid: { color: 'rgba(255,255,255,0.06)' },
+                },
+                y: { ticks: { color: '#e1e5eb', font: { size: 9 } }, grid: { display: false } },
+            },
+        },
+    });
+}
+
+async function loadPeriodCompare() {
+    if (periodCompareLoaded) return;
+    const setPeriodDash = () => {
+        ['pk-nref', 'pk-ncur', 'pk-mref', 'pk-mcur', 'pk-dpct', 'pk-km', 'pk-yil'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '—';
+        });
+    };
+    try {
+        const r = await fetch('/api/eda/cross_market');
+        const d = await r.json();
+        const noteEl = document.getElementById('pk-src-note');
+        if (!d.ok) {
+            setPeriodDash();
+            if (noteEl) noteEl.textContent = d.error || 'Çapraz piyasa verisi yüklenemedi.';
+            try {
+                const s = await fetch('/api/period_compare/summary');
+                const js = await s.json();
+                if (js.ok) {
+                    periodCompareLoaded = true;
+                    document.getElementById('pk-nref').textContent = new Intl.NumberFormat('tr-TR').format(js.n_ref);
+                    document.getElementById('pk-ncur').textContent = new Intl.NumberFormat('tr-TR').format(js.n_current);
+                    document.getElementById('pk-mref').textContent = fmtTL(js.median_ref_tl);
+                    document.getElementById('pk-mcur').textContent = fmtTL(js.median_current_tl);
+                    const dp = js.median_change_pct >= 0 ? '+' + js.median_change_pct + '%' : js.median_change_pct + '%';
+                    document.getElementById('pk-dpct').textContent = dp;
+                }
+            } catch (_) { /* ignore */ }
+            return;
+        }
+        periodCompareLoaded = true;
+        const ov = d.overview || {};
+        document.getElementById('pk-nref').textContent = new Intl.NumberFormat('tr-TR').format(ov.n_ref ?? 0);
+        document.getElementById('pk-ncur').textContent = new Intl.NumberFormat('tr-TR').format(ov.n_cur ?? 0);
+        document.getElementById('pk-mref').textContent = fmtTL(ov.median_ref_tl ?? 0);
+        document.getElementById('pk-mcur').textContent = fmtTL(ov.median_cur_tl ?? 0);
+        const dp = ov.delta_pct_median;
+        document.getElementById('pk-dpct').textContent =
+            typeof dp === 'number' && !Number.isNaN(dp) ? (dp >= 0 ? '+' + dp + '%' : dp + '%') : '—';
+        const kmR = ov.median_km_ref;
+        const kmC = ov.median_km_cur;
+        document.getElementById('pk-km').textContent =
+            kmR != null && kmC != null
+                ? new Intl.NumberFormat('tr-TR').format(kmR) + ' → ' + new Intl.NumberFormat('tr-TR').format(kmC)
+                : '—';
+        const yR = ov.median_yil_ref;
+        const yC = ov.median_yil_cur;
+        document.getElementById('pk-yil').textContent = yR != null && yC != null ? yR + ' → ' + yC : '—';
+        if (noteEl) noteEl.textContent = (d.ref_label || '') + '  ·  ' + (d.cur_label || '');
+
+        const pb = d.price_bands || {};
+        if (pb.labels && pb.labels.length) {
+            makeChart('chart-period-bands', {
+                type: 'bar',
+                data: {
+                    labels: pb.labels,
+                    datasets: [
+                        { label: 'Referans %', data: pb.ref_pct, backgroundColor: 'rgba(56,189,248,0.65)', borderRadius: 3, borderSkipped: false },
+                        { label: 'Güncel %', data: pb.cur_pct, backgroundColor: 'rgba(94,234,212,0.72)', borderRadius: 3, borderSkipped: false },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#e1e5eb' } } },
+                    scales: {
+                        x: { ticks: { color: '#8b95a5', font: { size: 10 } }, grid: { display: false } },
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: 100,
+                            ticks: { color: '#8b95a5', callback: (v) => v + '%' },
+                            grid: { color: 'rgba(255,255,255,0.06)' },
+                        },
+                    },
+                },
+            });
+        }
+        const refL = 'Referans örneklem';
+        const curL = 'Güncel örneklem';
+        chartEdaDualMedian('chart-period-yakit', d.yakit, refL, curL);
+        chartEdaDualMedian('chart-period-kasa', d.kasa, refL, curL);
+        chartEdaDualMedian('chart-period-vites', d.vites, refL, curL);
+        chartEdaDualMedian('chart-period-marka-median', d.marka, refL, curL);
+        chartEdaDeltaPct('chart-period-brands', d.marka);
+        chartEdaDeltaPct('chart-period-ms', d.marka_seri);
+        chartEdaDeltaPct('chart-period-cities', d.cities);
+        resizeAllCharts();
+    } catch (e) {
+        console.error(e);
+        setPeriodDash();
+    }
+}
+
+const charts = {};
+
+function makeChart(id, config) {
+    if (charts[id]) charts[id].destroy();
+    const ctx = document.getElementById(id);
+    if (!ctx) return;
+    charts[id] = new Chart(ctx, config);
+}
+
+/** Gizli sekmede (display:none) oluşturulan grafikler 0×0 kalır; sekme açıldıktan sonra boyutları güncelle */
+function resizeAllCharts() {
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            Object.keys(charts).forEach((id) => {
+                const ch = charts[id];
+                if (ch && typeof ch.resize === 'function') {
+                    try {
+                        ch.resize();
+                    } catch (_) { /* ignore */ }
+                }
+            });
+        });
+    });
+}
+
+function populateSelect(id, options, defaultVal, labelMap) {
+    const sel = document.getElementById(id);
+    if (!sel || !options) return;
+    sel.innerHTML = '';
+    options.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o;
+        opt.textContent = labelMap && labelMap[o] != null ? labelMap[o] : o;
+        if (o === defaultVal) opt.selected = true;
+        sel.appendChild(opt);
+    });
+}
+
+async function loadDashboard() {
+    const res = await fetch('/api/dashboard');
+    const d = await res.json();
+    document.getElementById('kpi-total').textContent = new Intl.NumberFormat('tr-TR').format(d.total_listings);
+    document.getElementById('kpi-median').textContent = fmtTL(d.median_price);
+    document.getElementById('kpi-km').textContent = new Intl.NumberFormat('tr-TR').format(d.median_km) + ' km';
+    document.getElementById('kpi-brands').textContent = d.unique_brands;
+}
+
+async function loadPriceDist() {
+    const res = await fetch('/api/eda/price_distribution');
+    const d = await res.json();
+    makeChart('chart-price-dist', {
+        type: 'bar',
+        data: {
+            labels: d.labels,
+            datasets: [{
+                data: d.values,
+                backgroundColor: GRADIENT_COLORS.slice(0, d.labels.length),
+                borderRadius: 8,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#8b95a5', font: { size: 11 } } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b95a5' } }
+            }
+        }
+    });
+}
+
+async function loadFuel() {
+    const res = await fetch('/api/eda/fuel_type');
+    const d = await res.json();
+    makeChart('chart-fuel', {
+        type: 'doughnut',
+        data: {
+            labels: d.labels,
+            datasets: [{
+                data: d.values,
+                backgroundColor: [COLORS.blue, COLORS.purple, COLORS.green, COLORS.orange, COLORS.pink],
+                borderWidth: 0,
+                hoverOffset: 8,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+                legend: { position: 'right', labels: { color: '#e1e5eb', font: { size: 12 }, padding: 12 } }
+            }
+        }
+    });
+}
+
+async function loadPriceYear() {
+    const res = await fetch('/api/eda/price_vs_year');
+    const d = await res.json();
+    makeChart('chart-price-year', {
+        type: 'line',
+        data: {
+            labels: d.labels,
+            datasets: [
+                {
+                    label: 'Medyan',
+                    data: d.median,
+                    borderColor: COLORS.purple,
+                    backgroundColor: 'rgba(94,234,212,0.08)',
+                    fill: true, tension: 0.4,
+                    pointRadius: 3, pointHoverRadius: 6,
+                },
+                {
+                    label: 'Ortalama',
+                    data: d.mean,
+                    borderColor: COLORS.blue,
+                    borderDash: [5, 5],
+                    fill: false, tension: 0.4,
+                    pointRadius: 2,
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#e1e5eb' } } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#8b95a5' } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b95a5', callback: v => (v/1e6).toFixed(1) + 'M' } }
+            }
+        }
+    });
+}
+
+async function loadBrand() {
+    const res = await fetch('/api/eda/brand_median');
+    const d = await res.json();
+    makeChart('chart-brand', {
+        type: 'bar',
+        data: {
+            labels: d.labels,
+            datasets: [{
+                data: d.values,
+                backgroundColor: 'rgba(94,234,212,0.6)',
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b95a5', callback: v => (v/1e6).toFixed(1) + 'M' } },
+                y: { grid: { display: false }, ticks: { color: '#e1e5eb', font: { size: 10 } } }
+            }
+        }
+    });
+}
+
+async function loadCorrelation() {
+    const res = await fetch('/api/eda/correlation');
+    const d = await res.json();
+    if (d.error || !d.labels || !d.values) return;
+    const labels = [];
+    const values = [];
+    for (let i = 0; i < d.labels.length; i++) {
+        const v = d.values[i];
+        if (typeof v === 'number' && Number.isFinite(v)) {
+            labels.push(d.labels[i]);
+            values.push(v);
+        }
+    }
+    if (!values.length) return;
+    const colors = values.map((v) => {
+        const a = Math.min(0.92, Math.max(0.22, Math.abs(v)));
+        return v > 0 ? `rgba(94,234,212,${a})` : `rgba(255,77,42,${a})`;
+    });
+    makeChart('chart-corr', {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{ data: values, backgroundColor: colors, borderRadius: 6, borderSkipped: false }],
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { min: -1, max: 1, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b95a5' } },
+                y: { grid: { display: false }, ticks: { color: '#e1e5eb', font: { size: 11 } } },
+            },
+        },
+    });
+}
+
+async function loadScatter() {
+    const res = await fetch('/api/eda/price_vs_km');
+    const d = await res.json();
+    const pts = d.km.map((k, i) => ({ x: k, y: d.price[i] }));
+    makeChart('chart-scatter', {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                data: pts,
+                backgroundColor: 'rgba(56,189,248,0.25)',
+                pointRadius: 2,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { title: { display: true, text: 'Kilometre', color: '#8b95a5' }, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b95a5', callback: v => (v/1e3) + 'K' } },
+                y: { title: { display: true, text: 'Fiyat (₺)', color: '#8b95a5' }, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b95a5', callback: v => (v/1e6).toFixed(1) + 'M' } }
+            }
+        }
+    });
+}
+
+async function loadKmDist() {
+    const res = await fetch('/api/eda/km_distribution');
+    const d = await res.json();
+    makeChart('chart-km-dist', {
+        type: 'bar',
+        data: {
+            labels: d.labels,
+            datasets: [{ data: d.values, backgroundColor: 'rgba(56,189,248,0.5)', borderRadius: 3, borderSkipped: false }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#8b95a5' } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b95a5' } }
+            }
+        }
+    });
+}
+
+async function loadYearDist() {
+    const res = await fetch('/api/eda/year_distribution');
+    const d = await res.json();
+    makeChart('chart-year-dist', {
+        type: 'bar',
+        data: {
+            labels: d.labels,
+            datasets: [{ data: d.values, backgroundColor: 'rgba(16,185,129,0.6)', borderRadius: 4, borderSkipped: false }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#8b95a5', maxRotation: 45 } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b95a5' } }
+            }
+        }
+    });
+}
+
+async function loadTransmission() {
+    const res = await fetch('/api/eda/transmission');
+    const d = await res.json();
+    makeChart('chart-transmission', {
+        type: 'doughnut',
+        data: {
+            labels: d.labels,
+            datasets: [{ data: d.values, backgroundColor: [COLORS.purple, COLORS.blue, COLORS.orange], borderWidth: 0 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, cutout: '55%',
+            plugins: { legend: { position: 'bottom', labels: { color: '#e1e5eb', font: { size: 11 }, padding: 8 } } }
+        }
+    });
+}
+
+async function loadBodyType() {
+    const res = await fetch('/api/eda/body_type');
+    const d = await res.json();
+    makeChart('chart-body', {
+        type: 'bar',
+        data: {
+            labels: d.labels,
+            datasets: [{ data: d.values, backgroundColor: 'rgba(245,158,11,0.6)', borderRadius: 6, borderSkipped: false }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b95a5', callback: v => (v/1e6).toFixed(1) + 'M' } },
+                y: { grid: { display: false }, ticks: { color: '#e1e5eb', font: { size: 10 } } }
+            }
+        }
+    });
+}
+
+async function loadSeller() {
+    const res = await fetch('/api/eda/seller_type');
+    const d = await res.json();
+    makeChart('chart-seller', {
+        type: 'bar',
+        data: {
+            labels: d.labels,
+            datasets: [{ data: d.median, backgroundColor: [COLORS.green, COLORS.purple, COLORS.blue], borderRadius: 8, borderSkipped: false }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#8b95a5', font: { size: 10 } } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b95a5', callback: v => (v/1e6).toFixed(1) + 'M' } }
+            }
+        }
+    });
+}
+
+async function loadAge() {
+    const res = await fetch('/api/eda/age_vs_price');
+    const d = await res.json();
+    makeChart('chart-age', {
+        type: 'line',
+        data: {
+            labels: d.labels,
+            datasets: [{
+                label: 'Medyan Fiyat',
+                data: d.values,
+                borderColor: COLORS.red,
+                backgroundColor: 'rgba(255,107,107,0.1)',
+                fill: true, tension: 0.4,
+                pointRadius: 4, pointHoverRadius: 7,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { title: { display: true, text: 'Araç Yaşı (yıl)', color: '#8b95a5' }, grid: { display: false }, ticks: { color: '#8b95a5' } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b95a5', callback: v => (v/1e6).toFixed(1) + 'M' } }
+            }
+        }
+    });
+}
+
+async function loadCity() {
+    const res = await fetch('/api/eda/city_top');
+    const d = await res.json();
+    makeChart('chart-city', {
+        type: 'bar',
+        data: {
+            labels: d.labels,
+            datasets: [{ data: d.values, backgroundColor: 'rgba(139,92,246,0.6)', borderRadius: 6, borderSkipped: false }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b95a5', callback: v => (v/1e6).toFixed(1) + 'M' } },
+                y: { grid: { display: false }, ticks: { color: '#e1e5eb', font: { size: 10 } } }
+            }
+        }
+    });
+}
+
+function _destroyChart(id) {
+    if (charts[id]) {
+        charts[id].destroy();
+        delete charts[id];
+    }
+}
+
+async function loadBuyerGuides() {
+    const res = await fetch('/api/eda/buyer_guides');
+    const d = await res.json();
+    if (d.error) return;
+
+    const block = d.panel_orijinal;
+    if (block && block.labels && block.labels.length) {
+        const vals = (block.values || []).map((v) => (v === null || v === undefined ? null : v));
+        const counts = block.counts || [];
+        if (vals.some((v) => v !== null && v !== undefined)) {
+            const lbls = block.labels.map((x) => String(x));
+            makeChart('chart-panel-orijinal', {
+                type: 'bar',
+                data: {
+                    labels: lbls,
+                    datasets: [
+                        {
+                            label: 'Medyan fiyat (₺)',
+                            data: vals,
+                            backgroundColor: COLORS.green + 'cc',
+                            borderRadius: 6,
+                            borderSkipped: false,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        subtitle: block.subtitle
+                            ? { display: true, text: String(block.subtitle), color: '#6b7280', font: { size: 11 } }
+                            : { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label(ctx) {
+                                    const raw = ctx.raw;
+                                    const i = ctx.dataIndex;
+                                    const parts = [];
+                                    if (raw == null || raw === undefined) parts.push('Medyan: veri yok');
+                                    else parts.push('Medyan: ' + new Intl.NumberFormat('tr-TR').format(raw) + ' ₺');
+                                    if (counts.length > i && counts[i] != null)
+                                        parts.push('İlan: ' + new Intl.NumberFormat('tr-TR').format(counts[i]));
+                                    return parts;
+                                },
+                            },
+                        },
+                    },
+                    scales: {
+                        x: {
+                            type: 'category',
+                            title: { display: true, text: 'Orijinal panel adedi (0–13)', color: '#8b95a5' },
+                            grid: { display: false },
+                            ticks: { color: '#8b95a5' },
+                        },
+                        y: {
+                            type: 'linear',
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#8b95a5', callback: (v) => (v / 1e6).toFixed(1) + 'M' },
+                        },
+                    },
+                },
+            });
+        }
+    } else {
+        _destroyChart('chart-panel-orijinal');
+    }
+
+    const km = d.km_bands;
+    if (km && km.labels && km.labels.length) {
+        makeChart('chart-guide-km', {
+            type: 'bar',
+            data: {
+                labels: km.labels,
+                datasets: [
+                    {
+                        label: 'Medyan ₺',
+                        data: km.median,
+                        backgroundColor: 'rgba(56,189,248,0.65)',
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    },
+                ],
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label(ctx) {
+                                const i = ctx.dataIndex;
+                                const m = km.median[i];
+                                const c = km.counts[i];
+                                return [
+                                    'Medyan: ' + new Intl.NumberFormat('tr-TR').format(m) + ' ₺',
+                                    'İlan: ' + new Intl.NumberFormat('tr-TR').format(c),
+                                ];
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        title: { display: true, text: 'Medyan fiyat (₺)', color: '#8b95a5' },
+                        ticks: { color: '#8b95a5', callback: (v) => (v / 1e6).toFixed(1) + 'M' },
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                    },
+                    y: { type: 'category', ticks: { color: '#8b95a5', font: { size: 10 } }, grid: { display: false } },
+                },
+            },
+        });
+    } else {
+        _destroyChart('chart-guide-km');
+    }
+
+    const yc = d.yil_cohort;
+    if (yc && yc.labels && yc.labels.length) {
+        makeChart('chart-guide-yil', {
+            type: 'line',
+            data: {
+                labels: yc.labels,
+                datasets: [
+                    {
+                        label: 'Medyan ₺',
+                        data: yc.median,
+                        borderColor: COLORS.purple,
+                        backgroundColor: 'rgba(94,234,212,0.12)',
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: COLORS.purple,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label(ctx) {
+                                const i = ctx.dataIndex;
+                                return [
+                                    'Medyan: ' + new Intl.NumberFormat('tr-TR').format(yc.median[i]) + ' ₺',
+                                    'İlan: ' + new Intl.NumberFormat('tr-TR').format(yc.counts[i] || 0),
+                                ];
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: { ticks: { color: '#8b95a5', maxRotation: 35 }, grid: { color: 'rgba(255,255,255,0.06)' } },
+                    y: {
+                        ticks: { color: '#8b95a5', callback: (v) => (v / 1e6).toFixed(1) + 'M' },
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                    },
+                },
+            },
+        });
+    } else {
+        _destroyChart('chart-guide-yil');
+    }
+
+    const rk = d.renk_top;
+    if (rk && rk.labels && rk.labels.length) {
+        const pal = GRADIENT_COLORS.slice(0, rk.labels.length);
+        makeChart('chart-guide-renk', {
+            type: 'polarArea',
+            data: {
+                labels: rk.labels,
+                datasets: [
+                    {
+                        data: rk.median,
+                        backgroundColor: pal.map((c) => (c.length === 7 ? c + 'aa' : c)),
+                        borderWidth: 1,
+                        borderColor: 'rgba(15,23,42,0.6)',
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { color: '#e1e5eb', font: { size: 10 }, boxWidth: 12 } },
+                    tooltip: {
+                        callbacks: {
+                            label(ctx) {
+                                const i = ctx.dataIndex;
+                                return (
+                                    'Medyan: ' +
+                                    new Intl.NumberFormat('tr-TR').format(rk.median[i]) +
+                                    ' ₺ | İlan: ' +
+                                    new Intl.NumberFormat('tr-TR').format(rk.counts[i])
+                                );
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    r: {
+                        ticks: { color: '#8b95a5', backdropColor: 'transparent' },
+                        grid: { color: 'rgba(255,255,255,0.08)' },
+                    },
+                },
+            },
+        });
+    } else {
+        _destroyChart('chart-guide-renk');
+    }
+
+    const ck = d.cekis;
+    if (ck && ck.labels && ck.labels.length) {
+        makeChart('chart-guide-cekis', {
+            type: 'bar',
+            data: {
+                labels: ck.labels,
+                datasets: [
+                    {
+                        label: 'Medyan ₺',
+                        data: ck.median,
+                        backgroundColor: ck.labels.map(
+                            (_, i) =>
+                                [
+                                    'rgba(245,158,11,0.85)',
+                                    'rgba(16,185,129,0.85)',
+                                    'rgba(236,72,153,0.85)',
+                                    'rgba(99,102,241,0.85)',
+                                    'rgba(14,165,233,0.85)',
+                                    'rgba(251,113,133,0.85)',
+                                    'rgba(52,211,153,0.85)',
+                                    'rgba(167,139,250,0.85)',
+                                ][i % 8],
+                        ),
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    },
+                ],
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label(ctx) {
+                                const i = ctx.dataIndex;
+                                return [
+                                    'Medyan: ' + new Intl.NumberFormat('tr-TR').format(ck.median[i]) + ' ₺',
+                                    'İlan: ' + new Intl.NumberFormat('tr-TR').format(ck.counts[i]),
+                                ];
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        ticks: { color: '#8b95a5', callback: (v) => (v / 1e6).toFixed(1) + 'M' },
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                    },
+                    y: { type: 'category', ticks: { color: '#e1e5eb', font: { size: 11 } }, grid: { display: false } },
+                },
+            },
+        });
+    } else {
+        _destroyChart('chart-guide-cekis');
+    }
+}
+
+async function loadModelComparison() {
+    const res = await fetch('/api/model_comparison');
+    const models = await res.json();
+    const tbody = document.querySelector('#model-table tbody');
+    tbody.innerHTML = '';
+    const best = models[models.length - 1];
+    models.forEach((m, i) => {
+        const isBest = i === models.length - 1;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${m.name} ${isBest ? '<span class="badge-best ms-2">EN İYİ</span>' : ''}</td>
+            <td>${m.mae ? new Intl.NumberFormat('tr-TR').format(m.mae) : '—'}</td>
+            <td>${m.rmse ? new Intl.NumberFormat('tr-TR').format(m.rmse) : '—'}</td>
+            <td>${m.r2 !== null ? m.r2.toFixed(3) : '—'}</td>
+            <td>${m.mape !== null ? '%' + m.mape.toFixed(1) : '—'}</td>
+            <td>${m.cv_mae ? new Intl.NumberFormat('tr-TR').format(m.cv_mae) : '—'}</td>
+        `;
+        if (isBest) tr.style.background = 'rgba(94,234,212,0.06)';
+        tbody.appendChild(tr);
+    });
+
+    const names = models.map(m => m.name);
+    const maes = models.map(m => m.mae || 0);
+    const colors = models.map((_, i) => i === models.length - 1 ? COLORS.green : 'rgba(94,234,212,0.35)');
+
+    makeChart('chart-model-mae', {
+        type: 'bar',
+        data: {
+            labels: names,
+            datasets: [{ label: 'MAE (₺)', data: maes, backgroundColor: colors, borderRadius: 8, borderSkipped: false }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#8b95a5', font: { size: 10 }, maxRotation: 25 } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b95a5', callback: v => (v/1e3) + 'K' } }
+            }
+        }
+    });
+
+    const r2s = models.map(m => m.r2 || 0);
+    const r2colors = models.map((_, i) => i === models.length - 1 ? COLORS.green : 'rgba(56,189,248,0.4)');
+    makeChart('chart-model-r2', {
+        type: 'bar',
+        data: {
+            labels: names,
+            datasets: [{ label: 'R²', data: r2s, backgroundColor: r2colors, borderRadius: 8, borderSkipped: false }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#8b95a5', font: { size: 10 }, maxRotation: 25 } },
+                y: { min: 0, max: 1, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b95a5' } }
+            }
+        }
+    });
+}
+
+async function loadSeriler() {
+    const marka = document.getElementById('inp-marka').value;
+    const r = await fetch('/api/hierarchy/seri?marka=' + encodeURIComponent(marka));
+    const d = await r.json();
+    const list = d.seriler && d.seriler.length ? d.seriler : [''];
+    populateSelect('inp-seri', list, list[0]);
+}
+
+async function refreshHierarchyBranch() {
+    const marka = document.getElementById('inp-marka').value;
+    const seri = document.getElementById('inp-seri').value;
+    const box = document.getElementById('hierarchy-branch');
+    const hid = document.getElementById('inp-model-resolved');
+    if (!box || !hid) return;
+    box.innerHTML = '<div class="spinner-ring mx-auto"></div>';
+    hid.value = '';
+    try {
+        const r = await fetch('/api/hierarchy/branch?marka=' + encodeURIComponent(marka) + '&seri=' + encodeURIComponent(seri));
+        const b = await r.json();
+        box.innerHTML = '';
+        if (b.mode === 'empty') {
+            box.innerHTML = '<p class="small text-warning mb-2">Bu marka/seri için kayıtlı model yok; tam model metnini yazın.</p>' +
+                '<input type="text" class="form-control" id="inp-model-manual" placeholder="Örn. 1.6 TDI Comfortline">';
+            const man = () => { const el = document.getElementById('inp-model-manual'); if (el) hid.value = el.value.trim(); };
+            document.getElementById('inp-model-manual').addEventListener('input', man);
+            man();
+            return;
+        }
+        if (b.mode === 'single') {
+            hid.value = b.model_full;
+            box.innerHTML = '<small class="text-muted">Model</small><div><strong>' + escapeHtml(b.model_full) + '</strong></div>';
+            return;
+        }
+        if (b.mode === 'list') {
+            box.innerHTML = '<label class="form-label">Model</label><select class="form-select" id="sel-model-list"></select>';
+            const sel = document.getElementById('sel-model-list');
+            b.models.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; sel.appendChild(o); });
+            hid.value = sel.value;
+            sel.addEventListener('change', () => { hid.value = sel.value; });
+            return;
+        }
+        if (b.mode === 'motor_paket') {
+            box.innerHTML = '<div class="row g-2"><div class="col-md-6"><label class="form-label">Motor / versiyon</label><select class="form-select" id="sel-motor"></select></div>' +
+                '<div class="col-md-6"><label class="form-label">Paket</label><select class="form-select" id="sel-paket"></select></div></div>';
+            const sm = document.getElementById('sel-motor');
+            const sp = document.getElementById('sel-paket');
+            b.motors.forEach(mo => {
+                const o = document.createElement('option');
+                o.value = mo.key;
+                o.textContent = mo.label;
+                sm.appendChild(o);
+            });
+            const resolveMotorPaket = () => {
+                const key = sm.value;
+                const pak = (sp.value || '').trim();
+                hid.value = (key ? key + ' ' : '') + pak;
+                hid.value = hid.value.trim();
+            };
+            const refillPaket = () => {
+                const key = sm.value;
+                const mo = b.motors.find(x => x.key === key);
+                const pk = mo ? mo.paketler : [];
+                sp.innerHTML = '';
+                pk.forEach(p => { const o = document.createElement('option'); o.value = p; o.textContent = p; sp.appendChild(o); });
+                resolveMotorPaket();
+            };
+            sm.addEventListener('change', refillPaket);
+            sp.addEventListener('change', resolveMotorPaket);
+            refillPaket();
+        }
+    } catch (e) {
+        box.innerHTML = '<span class="text-danger small">Hiyerarşi yüklenemedi</span>';
+        console.error(e);
+    }
+}
+
+async function predict() {
+    const manual = document.getElementById('inp-model-manual');
+    let modelVal = (document.getElementById('inp-model-resolved').value || '').trim();
+    if (manual && manual.value) modelVal = manual.value.trim();
+
+    const body = {
+        yil: +document.getElementById('inp-yil').value,
+        km_num: +document.getElementById('inp-km').value,
+        motor_hacmi_num: +document.getElementById('inp-motor-hacmi').value,
+        motor_gucu_num: +document.getElementById('inp-motor-gucu').value,
+        ort_yakit_tuketimi_num: +document.getElementById('inp-yakit-tuketim').value,
+        yakit_deposu_num: +document.getElementById('inp-yakit-depo').value,
+        panel_boyali_n: +document.getElementById('inp-boyali').value,
+        panel_degisen_n: +document.getElementById('inp-degisen').value,
+        tramer_num: +document.getElementById('inp-tramer').value,
+        marka: document.getElementById('inp-marka').value,
+        seri: document.getElementById('inp-seri').value,
+        model: modelVal,
+        takasa_uygun: document.getElementById('inp-takasa').value,
+        boya_degisen: document.getElementById('inp-boya-degisen').value,
+        yakit_tipi: document.getElementById('inp-yakit-tipi').value,
+        vites_tipi: document.getElementById('inp-vites').value,
+        kasa_tipi: document.getElementById('inp-kasa').value,
+        cekis: document.getElementById('inp-cekis').value,
+        kimden: document.getElementById('inp-kimden').value,
+        renk: document.getElementById('inp-renk').value,
+        arac_durumu: document.getElementById('inp-durum').value,
+        agir_hasarli: document.getElementById('inp-hasar').value,
+    };
+
+    const res = await fetch('/api/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
+    const d = await res.json();
+
+    if (d.error) {
+        alert(d.error);
+        return;
+    }
+
+    document.getElementById('pred-price').textContent = fmtTL(d.prediction);
+    document.getElementById('pred-mae-range').textContent = fmtTL(d.low_mae) + ' — ' + fmtTL(d.high_mae);
+    document.getElementById('pred-rmse-range').textContent = fmtTL(d.low_rmse) + ' — ' + fmtTL(d.high_rmse);
+    document.getElementById('pred-mae-info').textContent = new Intl.NumberFormat('tr-TR').format(d.mae);
+    document.getElementById('pred-result').classList.add('show');
+
+    const refBlock = document.getElementById('pred-ref-block');
+    const chartWrap = document.getElementById('pred-chart-wrap');
+    if (d.prediction_ref_period != null) {
+        refBlock.style.display = 'block';
+        chartWrap.style.display = 'block';
+        document.getElementById('pred-ref-price').textContent = fmtTL(d.prediction_ref_period);
+        document.getElementById('pred-ref-label').textContent = d.ref_period_label || '';
+        const sign = (d.delta_tl_vs_ref >= 0) ? '+' : '−';
+        const absTl = Math.abs(d.delta_tl_vs_ref);
+        const pct = d.delta_pct_vs_ref;
+        const pctSign = pct >= 0 ? '+' : '';
+        document.getElementById('pred-delta-line').innerHTML =
+            'Güncel tahmin, referansa göre <strong>' + sign + fmtTL(absTl) + '</strong> (' + pctSign + pct + '%) — bu profilde fiyat <strong>' + escapeHtml(d.value_change_word || '') + '</strong>.';
+        document.getElementById('pred-tramer-note').textContent =
+            d.arabam_model_uses_tramer === false && d.cars_ref_model_uses_tramer
+                ? 'Tramer tutarı yalnızca referans modelde kullanılır; güncel modelde tramer özelliği yok.'
+            : (d.ref_note || '');
+        makeChart('chart-pred-compare', {
+            type: 'bar',
+            data: {
+                labels: ['Referans (~6 ay önce)', 'Güncel tahmin'],
+                datasets: [{
+                    data: [d.prediction_ref_period, d.prediction],
+                    backgroundColor: [COLORS.blue, COLORS.purple],
+                    borderRadius: 12,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#e1e5eb' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#8b95a5', callback: v => (v / 1e6).toFixed(1) + 'M' } }
+                }
+            }
+        });
+    } else {
+        refBlock.style.display = 'none';
+        chartWrap.style.display = 'none';
+    }
+}
+
+function initSelects() {
+    if (!META || !META.marka || !META.marka.length) {
+        const hb = document.getElementById('hierarchy-branch');
+        if (hb) hb.innerHTML = '<p class="text-danger small mb-0">categories.json yüklenemedi. Yerel eğitim adımlarını tamamlayıp meta dosyasını oluşturun.</p>';
+        return;
+    }
+    const defaults = {
+        marka: 'Volkswagen', yakit_tipi: 'Dizel', vites_tipi: 'Otomatik',
+        kasa_tipi: 'Sedan', cekis: 'Önden Çekiş', kimden: 'Sahibinden',
+        renk: 'Beyaz', arac_durumu: 'İkinci El', agir_hasarli: 'Hayır',
+        takasa: (META.takasa_uygun && META.takasa_uygun[0]) || '',
+        boya_deg: (META.boya_degisen && META.boya_degisen[0]) || '',
+    };
+    populateSelect('inp-marka', META.marka, defaults.marka);
+    populateSelect('inp-yakit-tipi', META.yakit_tipi, defaults.yakit_tipi);
+    populateSelect('inp-vites', META.vites_tipi, defaults.vites_tipi);
+    populateSelect('inp-kasa', META.kasa_tipi, defaults.kasa_tipi);
+    populateSelect('inp-cekis', META.cekis, defaults.cekis);
+    const kimdenLabels = { 'Sahibinden': 'Bireysel satıcı' };
+    populateSelect('inp-kimden', META.kimden, defaults.kimden, kimdenLabels);
+    populateSelect('inp-renk', META.renk, defaults.renk);
+    populateSelect('inp-durum', META.arac_durumu, defaults.arac_durumu);
+    populateSelect('inp-hasar', META.agir_hasarli, defaults.agir_hasarli);
+    populateSelect('inp-takasa', META.takasa_uygun || [], defaults.takasa);
+    populateSelect('inp-boya-degisen', META.boya_degisen || [], defaults.boya_deg);
+
+    document.getElementById('inp-marka').addEventListener('change', async () => {
+        await loadSeriler();
+        await refreshHierarchyBranch();
+    });
+    document.getElementById('inp-seri').addEventListener('change', () => refreshHierarchyBranch());
+}
+
+function initSplash() {
+    const splash = document.getElementById('app-splash');
+    const btn = document.getElementById('splash-continue');
+    const statsEl = document.getElementById('splash-stats');
+    if (!splash || !btn) {
+        document.body.classList.add('splash-done');
+        return;
+    }
+    let done = false;
+    const dismiss = () => {
+        if (done) return;
+        done = true;
+        document.body.classList.add('splash-done');
+        splash.setAttribute('aria-hidden', 'true');
+    };
+    btn.addEventListener('click', dismiss);
+    fetch('/api/dashboard')
+        .then((r) => r.json())
+        .then((d) => {
+            if (!statsEl || d.error || d.median_price == null) return;
+            const n = d.total_listings != null ? new Intl.NumberFormat('tr-TR').format(d.total_listings) : '—';
+            const m = new Intl.NumberFormat('tr-TR').format(Math.round(d.median_price));
+            statsEl.textContent = 'Örneklem: ' + n + ' ilan · medyan fiyat ≈ ' + m + ' ₺';
+        })
+        .catch(() => {});
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    initSplash();
+    await ensureMetaFromServer();
+    initSelects();
+    await loadSeriler();
+    await refreshHierarchyBranch();
+    loadDashboard();
+    loadPriceDist();
+    loadFuel();
+    loadPriceYear();
+    loadBrand();
+    /* EDA + Model sekmesi grafikleri gizliyken yüklenince 0×0 kalıyor; ilk sekme açılışında yüklenir */
+    let resizeT;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeT);
+        resizeT = setTimeout(resizeAllCharts, 150);
+    });
+});
+</script>
+</body>
+</html>

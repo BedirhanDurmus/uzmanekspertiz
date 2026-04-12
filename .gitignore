@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Büyük veri seti (GitHub tek dosya ~100 MB sınırı)
+data/arabam.com-otomobil-veri-seti-csv.csv
+
+# OS
+.DS_Store
+Thumbs.db

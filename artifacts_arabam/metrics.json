@@ -1,0 +1,7 @@
+{
+  "mae_tl": 67727.69571474621,
+  "rmse_tl": 107948.75869935339,
+  "n_validation": 35406,
+  "dataset": "arabam.com-otomobil-veri-seti-csv.csv",
+  "note": "Validation hold-out 20%; OHE max_categories=50"
+}

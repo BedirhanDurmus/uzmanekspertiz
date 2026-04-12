@@ -1,0 +1,6 @@
+{
+  "mae_tl": 66314.93467743973,
+  "rmse_tl": 104723.77343913486,
+  "n_validation": 10252,
+  "note": "mae_tl: ortalama mutlak hata (dogrulama seti); arayuzde +/- bandi icin kullanilir"
+}
