@@ -7,6 +7,7 @@ venv/
 
 # Jupyter
 .ipynb_checkpoints/
+notebook.pdf
 
 # Büyük veri seti (GitHub tek dosya ~100 MB sınırı)
 data/arabam.com-otomobil-veri-seti-csv.csv
