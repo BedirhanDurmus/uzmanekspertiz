@@ -3,7 +3,7 @@ Arabam.com veri seti ile notebook ile uyumlu pipeline eğitir; artifacts_arabam/
 
 Önce: arabam.com-otomobil-veri-seti-csv.csv dosyası `data/` veya proje kökünde olmalı.
 Çalıştır: python train_model_arabam.py
-Arayüz: streamlit_app.py içinde Arabam sekmesi bu artifact'ları kullanır.
+Flask arayüzü (`web_app.py`) bu artifact'ları kullanır.
 """
 from __future__ import annotations
 

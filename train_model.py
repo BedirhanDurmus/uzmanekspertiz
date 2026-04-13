@@ -1,6 +1,6 @@
 """
 Notebook ile aynı pipeline'ı eğitir ve artifacts/ altına kaydeder.
-Arayüz (streamlit_app.py) bu dosyayı çalıştırmadan önce bir kez çalıştırılmalıdır.
+Flask arayüzü (`web_app.py`) bu artifact'larla çalışır; önce bu dosyayı bir kez çalıştırın.
 """
 from __future__ import annotations
 

@@ -34,7 +34,7 @@ Arayüz metinleri ticari marka veya ham dosya adlarına dayanmayacak şekilde n�
 - **XGBoost** (eğitim ve karşılaştırma için)
 - **Chart.js** (CDN) — tarayıcıda grafikler
 
-İsteğe bağlı: `streamlit_app.py` ile ayrı bir Streamlit arayüzü de bulunur.
+**Canlı ortam (Render vb.):** yalnızca Flask — `web_app.py` + `gunicorn` (`render.yaml`). Streamlit kurulmaz ve kullanılmaz.
 
 ---
 
@@ -47,6 +47,8 @@ python -m venv .venv
 # source .venv/bin/activate     # Linux / macOS
 pip install -r requirements.txt
 ```
+
+Yerelde eski `streamlit_app.py` dosyasını denemek istersen (üretimle ilgisi yok): `pip install -r requirements-dev.txt`
 
 ---
 
@@ -120,7 +122,9 @@ arabam_proje/
 ├── market_compare.py       # Dönem / çapraz karşılaştırma
 ├── train_model_arabam.py
 ├── train_model.py
-├── requirements.txt
+├── requirements.txt          # Canlı / üretim (Streamlit yok)
+├── requirements-dev.txt      # İsteğe bağlı yerel Streamlit
+├── render.yaml
 └── README.md
 ```
 

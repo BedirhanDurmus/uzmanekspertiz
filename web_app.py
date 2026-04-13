@@ -40,7 +40,7 @@ if not (BASE_DIR / "static" / "splash-bg.png").is_file():
     )
 
 # Arayüz sürümü (tarayıcıda kontrol için)
-WEB_UI_BUILD = "2026-04-13-v19"
+WEB_UI_BUILD = "2026-04-13-v20"
 
 CSV_ARABAM = data_csv("arabam.com-otomobil-veri-seti-csv.csv")
 CSV_CARS = data_csv("cars.csv")

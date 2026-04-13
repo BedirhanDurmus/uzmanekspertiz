@@ -1,5 +1,7 @@
 """
-İkinci el araç fiyat tahmini — Streamlit arayüzü (bilgilendirme / karşılaştırmalı analiz).
+İkinci el araç fiyat tahmini — isteğe bağlı Streamlit arayüzü (yalnızca yerel deneme).
+
+Canlı / üretim ortamı Flask'tır (`web_app.py`); Render bu dosyayı kullanmaz. Kurulum: `pip install -r requirements-dev.txt`
 
 Türkiye piyasası örneklem verileri üzerinde eğitilmiş ML modelleri; resmi ekspertiz veya ilan platformu onayı değildir.
 Ticari markalar yalnızca veri kaynağını tanımlar (kenar çubukta yasal metin).
