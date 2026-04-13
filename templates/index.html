@@ -555,7 +555,7 @@
 
 <div id="app-splash" role="dialog" aria-modal="true" aria-labelledby="splash-title" aria-describedby="splash-desc">
     <div class="app-splash__photo-wrap" aria-hidden="true">
-        <img class="app-splash__photo-img" src="/static/splash-bg.png" width="2560" height="1432" fetchpriority="high" decoding="sync" alt="">
+        <img class="app-splash__photo-img" src="{{ url_for('static', filename='splash-bg.png') }}" width="2560" height="1432" fetchpriority="high" decoding="sync" alt="">
     </div>
     <div class="app-splash__veil" aria-hidden="true"></div>
     <div class="app-splash__grain" aria-hidden="true"></div>

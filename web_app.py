@@ -30,8 +30,17 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 
+if not (BASE_DIR / "static" / "splash-bg.png").is_file():
+    import warnings
+
+    warnings.warn(
+        "static/splash-bg.png bulunamadi; splash arka plani canlida gorunmez. Dosyayi repoya ekleyip deploy edin.",
+        UserWarning,
+        stacklevel=1,
+    )
+
 # Arayüz sürümü (tarayıcıda kontrol için)
-WEB_UI_BUILD = "2026-04-13-v18"
+WEB_UI_BUILD = "2026-04-13-v19"
 
 CSV_ARABAM = data_csv("arabam.com-otomobil-veri-seti-csv.csv")
 CSV_CARS = data_csv("cars.csv")
