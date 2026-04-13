@@ -584,6 +584,10 @@
     </div>
 </section>
 
+<div id="data-warning-banner" class="d-none text-center small py-2 px-3" role="alert"
+     style="background:#2d1f0a;color:#fcd34d;border-bottom:1px solid #92400e;">
+</div>
+
 <!-- Navigation -->
 <div class="container mt-4 mb-4">
     <ul class="nav nav-pills-custom d-flex flex-wrap" id="mainNav">
@@ -1174,7 +1178,21 @@ const GRADIENT_COLORS = [
 ];
 
 function fmtTL(n) {
-    return new Intl.NumberFormat('tr-TR').format(Math.round(n)) + ' ₺';
+    const x = Number(n);
+    if (n == null || !Number.isFinite(x)) return '—';
+    return new Intl.NumberFormat('tr-TR').format(Math.round(x)) + ' ₺';
+}
+
+function setDataBanner(msg) {
+    const b = document.getElementById('data-warning-banner');
+    if (!b) return;
+    if (msg) {
+        b.textContent = msg;
+        b.classList.remove('d-none');
+    } else {
+        b.textContent = '';
+        b.classList.add('d-none');
+    }
 }
 
 function goToPeriodTab(ev) {
@@ -1468,7 +1486,15 @@ function populateSelect(id, options, defaultVal, labelMap) {
 
 async function loadDashboard() {
     const res = await fetch('/api/dashboard');
-    const d = await res.json();
+    const d = await res.json().catch(() => ({}));
+    const ok = res.ok && d.error == null && d.median_price != null;
+    if (!ok) {
+        setDataBanner(d.hint || d.error || 'Özet verisi yüklenemedi. Canlıda Arabam CSV eksik olabilir; Render’da ARABAM_CSV_URL ortam değişkeni tanımlayın veya CSV’yi repoya ekleyin.');
+        const dash = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        dash('kpi-total', '—'); dash('kpi-median', '—'); dash('kpi-km', '—'); dash('kpi-brands', '—');
+        return;
+    }
+    setDataBanner(null);
     document.getElementById('kpi-total').textContent = new Intl.NumberFormat('tr-TR').format(d.total_listings);
     document.getElementById('kpi-median').textContent = fmtTL(d.median_price);
     document.getElementById('kpi-km').textContent = new Intl.NumberFormat('tr-TR').format(d.median_km) + ' km';
@@ -1477,7 +1503,8 @@ async function loadDashboard() {
 
 async function loadPriceDist() {
     const res = await fetch('/api/eda/price_distribution');
-    const d = await res.json();
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok || d.error) return;
     makeChart('chart-price-dist', {
         type: 'bar',
         data: {
@@ -1502,7 +1529,8 @@ async function loadPriceDist() {
 
 async function loadFuel() {
     const res = await fetch('/api/eda/fuel_type');
-    const d = await res.json();
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok || d.error) return;
     makeChart('chart-fuel', {
         type: 'doughnut',
         data: {
@@ -1526,7 +1554,8 @@ async function loadFuel() {
 
 async function loadPriceYear() {
     const res = await fetch('/api/eda/price_vs_year');
-    const d = await res.json();
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok || d.error) return;
     makeChart('chart-price-year', {
         type: 'line',
         data: {
@@ -1563,7 +1592,8 @@ async function loadPriceYear() {
 
 async function loadBrand() {
     const res = await fetch('/api/eda/brand_median');
-    const d = await res.json();
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok || d.error) return;
     makeChart('chart-brand', {
         type: 'bar',
         data: {

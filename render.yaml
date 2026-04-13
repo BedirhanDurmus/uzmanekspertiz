@@ -1,5 +1,8 @@
 # Render Blueprint — https://render.com/docs/blueprint-spec
 # Flask: web_app.py içindeki `app` nesnesi
+#
+# Arabam CSV repoda yoksa: Dashboard → Environment → ARABAM_CSV_URL
+# (dosyanin dogrudan indirme URL'i; ilk istekte data/ altina iner)
 
 services:
   - type: web

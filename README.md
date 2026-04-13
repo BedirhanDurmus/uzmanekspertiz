@@ -61,6 +61,11 @@ CSV dosyaları öncelikle **`data/`** klasörüne konur; yoksa proje köküne ba
 
 Dosya adlarını `data/` içine koyduktan sonra `web_app.py` içindeki sabitlerle veya eğitim scriptlerindeki yollarla uyumlu olduğundan emin olun.
 
+**Render / canlı:** `data/arabam.com-otomobil-veri-seti-csv.csv` çoğu zaman repoda yoktur (`.gitignore`, büyük dosya). Bu durumda:
+
+1. **Önerilen:** Render panelinde **Environment** → `ARABAM_CSV_URL` = CSV dosyasının **doğrudan indirme** linki (ör. kendi S3’nüz, GitHub **Release** asset raw URL’si, Dropbox `?dl=1` vb.). İlk istekte dosya `data/` altına indirilir (cold start uzun sürebilir).
+2. Alternatif: CSV’yi repoya ekleyip `.gitignore` satırını kaldırın (GitHub ~100 MB sınırına dikkat) veya [Git LFS](https://git-lfs.com) kullanın.
+
 ---
 
 ## Model eğitimi
@@ -120,6 +125,7 @@ arabam_proje/
 ├── market_compare.py       # Dönem / çapraz karşılaştırma
 ├── train_model_arabam.py
 ├── train_model.py
+├── data_bootstrap.py       # Canlı: ARABAM_CSV_URL ile CSV indirme
 ├── requirements.txt
 ├── render.yaml
 └── README.md

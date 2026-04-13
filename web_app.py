@@ -24,7 +24,8 @@ from arabam_preprocess import (
 from car_preprocess import CATEGORICAL_FEATURES as CP_CAT, NUMERIC_FEATURES as CP_NUM
 from hierarchy_utils import branch_payload_for_marka_seri, load_marka_seri_model_hierarchy, seri_for_marka
 from predict_bridge import common_row_to_arabam_pipeline_row, pick_category
-from paths import BASE_DIR, data_csv
+from data_bootstrap import arabam_csv_path, cars_csv_path, ensure_arabam_csv_from_url
+from paths import BASE_DIR
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -40,10 +41,8 @@ if not (BASE_DIR / "static" / "splash-bg.png").is_file():
     )
 
 # Arayüz sürümü (tarayıcıda kontrol için)
-WEB_UI_BUILD = "2026-04-13-v21"
+WEB_UI_BUILD = "2026-04-13-v22"
 
-CSV_ARABAM = data_csv("arabam.com-otomobil-veri-seti-csv.csv")
-CSV_CARS = data_csv("cars.csv")
 ARTIFACTS_DIR = BASE_DIR / "artifacts_arabam"
 MODEL_PATH = ARTIFACTS_DIR / "best_pipe.joblib"
 META_PATH = ARTIFACTS_DIR / "categories.json"
@@ -90,8 +89,11 @@ def get_metrics():
 
 def get_dfm():
     global _dfm
-    if _dfm is None and CSV_ARABAM.exists():
-        _dfm = load_prepared_arabam_frame(CSV_ARABAM)
+    if _dfm is None:
+        ensure_arabam_csv_from_url()
+        ap = arabam_csv_path()
+        if ap.exists():
+            _dfm = load_prepared_arabam_frame(ap)
     return _dfm
 
 
@@ -121,7 +123,8 @@ def get_metrics_cars():
 def get_hierarchy_df():
     global _hierarchy_df
     if _hierarchy_df is None:
-        _hierarchy_df = load_marka_seri_model_hierarchy(CSV_ARABAM, CSV_CARS)
+        ensure_arabam_csv_from_url()
+        _hierarchy_df = load_marka_seri_model_hierarchy(arabam_csv_path(), cars_csv_path())
     return _hierarchy_df
 
 
@@ -129,12 +132,13 @@ def get_market_pair():
     """(df_2025, df_2026) veya None — referans örneklem ile güncel örneklem kıyası."""
     global _market_pair
     if _market_pair is None:
-        if not CSV_CARS.exists() or not CSV_ARABAM.exists():
+        ensure_arabam_csv_from_url()
+        if not cars_csv_path().exists() or not arabam_csv_path().exists():
             _market_pair = False
         else:
             try:
-                df_2025 = mc.load_2025_frame(CSV_CARS)
-                df_2026 = mc.load_2026_frame(CSV_ARABAM, peer_cap_quantile=0.97, peer_cap_mode="drop")
+                df_2025 = mc.load_2025_frame(cars_csv_path())
+                df_2026 = mc.load_2026_frame(arabam_csv_path(), peer_cap_quantile=0.97, peer_cap_mode="drop")
                 _market_pair = (df_2025, df_2026)
             except Exception:
                 _market_pair = False
@@ -196,7 +200,12 @@ def api_meta_arabam():
 def api_dashboard():
     dfm = get_dfm()
     if dfm is None:
-        return jsonify({"error": "Veri yüklenemedi"}), 500
+        return jsonify(
+            {
+                "error": "Veri yüklenemedi",
+                "hint": "Arabam CSV repoda yok (genelde .gitignore). Render: Environment → ARABAM_CSV_URL = dosyanın doğrudan indirme linki; veya CSV’yi commitleyin.",
+            }
+        ), 503
 
     stats = {
         "total_listings": int(len(dfm)),
@@ -630,7 +639,7 @@ def api_eda_cross_market():
                 out[key] = {"labels": [], "m25": [], "m26": [], "delta_pct": []}
 
         try:
-            df25w = mc.load_2025_frame_wide(CSV_CARS)
+            df25w = mc.load_2025_frame_wide(cars_csv_path())
             ms = mc.marka_seri_median_compare(df25w, df26, min_n=22)
             out["marka_seri"] = _serialize_median_compare(ms, 18)
             cmc = mc.city_median_compare(df25w, df26, min_n=40)
