@@ -1,4 +1,4 @@
-"""Streamlit ile aynı: ortak form girdileri -> Arabam pipeline satiri."""
+"""Ortak form girdileri (Flask / web_app) -> Arabam pipeline satiri."""
 from __future__ import annotations
 
 from datetime import datetime

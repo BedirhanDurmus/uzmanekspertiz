@@ -1,3 +1,0 @@
-# Sadece yerel geliştirme — canli / Render kurulumunda KULLANILMAZ (pip install -r requirements.txt)
--r requirements.txt
-streamlit>=1.28
