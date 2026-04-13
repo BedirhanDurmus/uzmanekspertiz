@@ -1,14 +1,11 @@
 # Render Blueprint — https://render.com/docs/blueprint-spec
-# Dashboard: New → Blueprint → Bu repo → render.yaml ile bağla
+# Flask: web_app.py içindeki `app` nesnesi
 
 services:
   - type: web
-    name: arabam-streamlit
+    name: arabam-flask
     runtime: python
     plan: free
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt
-    startCommand: streamlit run streamlit_app.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true
-    healthCheckPath: /healthz
-    envVars:
-      - key: STREAMLIT_SERVER_HEADLESS
-        value: "true"
+    startCommand: gunicorn web_app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
+    healthCheckPath: /
