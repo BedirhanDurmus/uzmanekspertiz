@@ -1,0 +1,9 @@
+# Üretim / Render — tarayıcıdan erişim için
+[server]
+headless = true
+address = "0.0.0.0"
+enableCORS = false
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false

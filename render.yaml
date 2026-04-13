@@ -1,0 +1,14 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Dashboard: New → Blueprint → Bu repo → render.yaml ile bağla
+
+services:
+  - type: web
+    name: arabam-streamlit
+    runtime: python
+    plan: free
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: streamlit run streamlit_app.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true
+    healthCheckPath: /healthz
+    envVars:
+      - key: STREAMLIT_SERVER_HEADLESS
+        value: "true"
